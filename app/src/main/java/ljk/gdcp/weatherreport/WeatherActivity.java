@@ -1,5 +1,6 @@
 package ljk.gdcp.weatherreport;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -27,6 +28,7 @@ import java.io.IOException;
 
 import ljk.gdcp.weatherreport.gson.Forecast;
 import ljk.gdcp.weatherreport.gson.Weather;
+import ljk.gdcp.weatherreport.service.AutoUpdateService;
 import ljk.gdcp.weatherreport.util.HttpUtil;
 import ljk.gdcp.weatherreport.util.Utility;
 import okhttp3.Call;
@@ -191,6 +193,12 @@ private ScrollView weatherLayout;
         carWashText.setText(carWash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
+        if (weather!=null&&"ok".equals(weather.status)){
+            Intent intent=new Intent(this, AutoUpdateService.class);
+            startService(intent);
+        }else{
+            Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**
