@@ -7,10 +7,13 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
 
 import org.w3c.dom.Text;
 
@@ -36,6 +39,7 @@ private ScrollView weatherLayout;
     private TextView comfortText;
     private TextView carWashText;
     private TextView sportText;
+    private ImageView bingPicImg;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +55,7 @@ private ScrollView weatherLayout;
         comfortText= (TextView) findViewById(R.id.comfort_text);
         carWashText= (TextView) findViewById(R.id.car_wash_text);
         sportText= (TextView) findViewById(R.id.sport_text);
+        bingPicImg= (ImageView) findViewById(R.id.bing_pic_img);
         SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString=prefs.getString("weather",null);
         if (weatherString!=null){
@@ -62,6 +67,13 @@ private ScrollView weatherLayout;
             String weatherId=getIntent().getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);
             requestWeather(weatherId);
+        }
+
+        String bingPic=prefs.getString("bing_pic",null);
+        if (bingPic!=null){
+            Glide.with(this).load(bingPic).into(bingPicImg);
+        }else {
+            loadBingPic();
         }
     }
 
@@ -102,6 +114,7 @@ private ScrollView weatherLayout;
                 });
             }
         });
+        loadBingPic();
     }
 
     /**
@@ -141,6 +154,33 @@ private ScrollView weatherLayout;
         carWashText.setText(carWash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 加载必应每日一图
+     */
+    private void loadBingPic(){
+        String requestBingPic="http://guolin.tech/api/bing_pic";
+        HttpUtil.sendoOkHttpRequest(requestBingPic, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                    final String bingPic=response.body().string();
+                SharedPreferences.Editor editor=PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+                editor.putString("bing_pic",bingPic);
+                editor.apply();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Glide.with(WeatherActivity.this).load(bingPic).into(bingPicImg);
+                    }
+                });
+            }
+        });
 
     }
 }
